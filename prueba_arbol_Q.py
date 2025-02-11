@@ -3,39 +3,35 @@ import arboles_cualitativos as ac
 import os
 import random
 
-# Descarga y descomprime los datos
-
-url = 'https://archive.ics.uci.edu/static/public/19/car+evaluation.zip'
-archivo = 'datos/car.zip'
-archivo_datos = 'datos/car.data'
-atributos = ['buying', 'maint', 'doors', 'persons', 'lug_boot', 'safety', 'class']
+# Ruta del archivo de datos
+archivo_datos = os.path.join("iris", "iris.data")
+atributos = ["sepal_length", "sepal_width", "petal_length", "petal_width", "class"]
 target = 'class'
 
-# url = 'https://archive.ics.uci.edu/static/public/73/mushroom.zip'
-# archivo = 'datos/mushroom.zip'
-# archivo_datos = 'datos/agaricus-lepiota.data'
-# atributos = ['class', 'cap-shape', 'cap-surface', 'cap-color', 'bruises', 'odor', 'gill-attachment', 'gill-spacing', 'gill-size', 'gill-color', 'stalk-shape', 'stalk-root', 'stalk-surface-above-ring', 'stalk-surface-below-ring', 'stalk-color-above-ring', 'stalk-color-below-ring', 'veil-type', 'veil-color', 'ring-number', 'ring-type', 'spore-print-color', 'population', 'habitat']
-# target = 'class'
+# Verifica si el archivo existe
+if not os.path.exists(archivo_datos):
+    raise FileNotFoundError(f"No se encontró el archivo: {archivo_datos}")
 
-if not os.path.exists('datos'):
-    os.makedirs('datos')
-if not os.path.exists(archivo):
-    ut.descarga_datos(url, archivo)
-    ut.descomprime_zip(archivo)
-    
-# Lee los datos
-datos = ut.lee_csv(archivo_datos, atributos=atributos, separador=',')
+# Lee los datos desde el archivo CSV
+# Asegúrate de que 'ut.lee_csv' esté correctamente implementada
+datos = ut.lee_csv(
+    archivo_datos, 
+    atributos=atributos,  # Usamos la variable atributos en lugar de hardcodear
+    separador=',', 
+    tiene_encabezado=False  # Este parámetro es importante si el archivo no tiene encabezado
+)
 
-
-# Selecciona un conjunto de entrenamiento y de validación
+# Aleatoriza y divide los datos en entrenamiento y validación
 random.seed(42)
-random.shuffle(datos)
-N = int(0.8*len(datos))
+random.shuffle(datos)  # Mezclamos los datos para evitar sesgos
+N = int(0.8 * len(datos))  # 80% para entrenamiento, 20% para validación
 datos_entrenamiento = datos[:N]
 datos_validacion = datos[N:]
 
-# Para diferentes profundidades
+# Lista para almacenar los errores
 errores = []
+
+# Entrena el árbol con diferentes profundidades y evalúa
 for profundidad in [1, 3, 5, None]:
     arbol = ac.entrena_arbol(
         datos_entrenamiento, 
@@ -43,22 +39,23 @@ for profundidad in [1, 3, 5, None]:
         atributos, 
         max_profundidad=profundidad
     )
-    error_en_muesta = ac.evalua_arbol(arbol, datos_entrenamiento, target)
+    
+    # Evaluación en el conjunto de entrenamiento y validación
+    error_en_muestra = ac.evalua_arbol(arbol, datos_entrenamiento, target)
     error_en_validacion = ac.evalua_arbol(arbol, datos_validacion, target)
-    errores.append( (profundidad, error_en_muesta, error_en_validacion) )
+    
+    # Guardamos los resultados
+    errores.append((profundidad, error_en_muestra, error_en_validacion))
 
-# Muetsra los errores
-print('d'.center(10) + 'Ein'.center(15) + 'E_out'.center(15))
-print('-' * 40)
+# Muestra los resultados de los errores
+print(f"{'Profundidad'.center(12)}{'Ein'.center(12)}{'E_out'.center(12)}")
+print("-" * 40)
 for profundidad, error_entrenamiento, error_validacion in errores:
-    print(
-        f'{profundidad}'.center(10) 
-        + f'{error_entrenamiento:.4f}'.center(15) 
-        + f'{error_validacion:.4f}'.center(15)
-    )
-print('-' * 40 + '\n')    
+    print(f"{str(profundidad).center(12)}"
+      f"{error_entrenamiento:.4f}".center(12) +
+      f"{error_validacion:.4f}".center(12))
+print("-" * 40)
 
-
-# Y Ahora entrenamos un árbol por única vez con todos los datos
-arbol = ac.entrena_arbol(datos, target, atributos, max_profundidad=3)
-ac.imprime_arbol(arbol)
+# Entrenamos un árbol con toda la data y lo imprimimos
+arbol_final = ac.entrena_arbol(datos, target, atributos, max_profundidad=3)
+ac.imprime_arbol(arbol_final)

@@ -10,7 +10,7 @@
 __author__ = "Julio Waissman"
 __date__ = "enero 2025"
 
-
+import random
 import math
 from collections import Counter
 
@@ -47,7 +47,10 @@ def entrena_arbol(datos, target, clase_default,
     """
     atributos = list(datos[0].keys())
     atributos.remove(target)
-        
+    
+    if isinstance(variables_seleccionadas, int):
+        atributos = random.sample(atributos,variables_seleccionadas)
+
     # Criterios para deterinar si es un nodo hoja
     if  len(datos) == 0 or len(atributos) == 0:
         return NodoN(terminal=True, clase_default=clase_default)
